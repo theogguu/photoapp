@@ -4,7 +4,7 @@
 # viewing.
 #
 # Authors:
-#   YOUR NAME
+#   Steven Gu
 #   Prof. Joe Hummel (initial template)
 #   Northwestern University
 #   Spring 2023
