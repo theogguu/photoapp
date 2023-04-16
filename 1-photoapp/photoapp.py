@@ -3,17 +3,18 @@ import sys
 import uuid
 # print(uuid.uuid4())
 
-ENDPOINT = "photoapp-steven-gu.s3.us-east-2.amazonaws.com"
+ENDPOINT = "mysql-cs310.cs4bnd9lvwts.us-east-1.rds.amazonaws.com"
 USER = "admin"
 PASSWORD = "1haveasecretpassword"
 DBNAME = "sys" # sys is the default database #suggested "photoapp"
 
 print('starting...')
 try:
-    dbconn = pymysql.connect(ENDPOINT, USER, PASSWORD, DBNAME)
+    dbconn = pymysql.connect(host=ENDPOINT, user=USER, passwd=PASSWORD, database=DBNAME, port=3306)
     cursor = dbconn.cursor()
     cursor.execute("SELECT now()")
     
+<<<<<<< HEAD
     sql_create_database = """CREATE DATABASE photoapp
     --
     -- inserts one user and one asset into respective tables:
@@ -40,6 +41,44 @@ try:
         
     
     
+=======
+    create_tables = """
+    CREATE DATABASE photoapp;
+    USE photoapp;
+
+    DROP TABLE IF EXISTS assets;
+    DROP TABLE IF EXISTS users;
+
+    CREATE TABLE users
+    (
+        userid       int not null AUTO_INCREMENT,
+        email        varchar(128) not null,
+        lastname     varchar(64) not null,
+        firstname    varchar(64) not null,
+        bucketfolder varchar(48) not null,  -- random, unique name (UUID)
+        PRIMARY KEY (userid),
+        UNIQUE      (email),
+        UNIQUE      (bucketfolder)
+    );
+
+    ALTER TABLE users AUTO_INCREMENT = 80001;  -- starting value
+
+    CREATE TABLE assets
+    (
+        assetid      int not null AUTO_INCREMENT,
+        userid       int not null,
+        assetname    varchar(128) not null,  -- original name from user
+        bucketkey    varchar(128) not null,  -- random, unique name in bucket
+        PRIMARY KEY (assetid),
+        FOREIGN KEY (userid) REFERENCES users(userid),
+        UNIQUE      (bucketkey)
+    );
+
+    ALTER TABLE assets AUTO_INCREMENT = 1001;  -- starting value
+    """
+    cursor.executescript(create_tables)
+    cursor.execute("SELECT * FROM users")
+>>>>>>> 32497205e46f3453d9f5a8b971e47f8c493a1550
     query_results = cursor.fetchall()
     print(query_results)
 
