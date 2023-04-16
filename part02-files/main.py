@@ -90,17 +90,18 @@ def stats(bucketname, bucket, endpoint, dbConn):
   #
   print("RDS MySQL endpoint:", endpoint)
 
-  sql = """
-  select now();
-  """
+  sql_count_users = "select count(*) from users";
+  sql_count_assets = "select count(*) from assets";
 
-  row = datatier.retrieve_one_row(dbConn, sql)
-  if row is None:
+  row = datatier.retrieve_one_row(dbConn, sql_count_users)
+  row2 = datatier.retrieve_one_row(dbConn, sql_count_assets)
+  if row is None or row2 is None:
     print("Database operation failed...")
-  elif row == ():
+  elif row == () or row2 == ():
     print("Unexpected query failure...")
   else:
-    print(row[0])
+    print("# of users: {}".format(row[0]))
+    print("# of assets: {}".format(row2[0]))
 
 
 #########################################################################
@@ -116,7 +117,9 @@ sys.tracebacklimit = 0
 # what config file should we use for this session?
 #
 config_file = 'photoapp-config'
+# config_file = 'part02-files/photoapp-config'
 
+# 
 print("What config file to use for this session?")
 print("Press ENTER to use default (photoapp-config),")
 print("otherwise enter name of config file>")
@@ -167,6 +170,7 @@ if dbConn is None:
 
 #
 # main processing loop:
+
 #
 cmd = prompt()
 
@@ -178,6 +182,7 @@ while cmd != 0:
   #
   # TODO
   #
+  
   #
   else:
     print("** Unknown command, try again...")
