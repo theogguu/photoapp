@@ -59,7 +59,7 @@ def prompt():
 
 ###################################################################
 #
-# stats
+# 1 - stats
 #
 def stats(bucketname, bucket, endpoint, dbConn):
   """
@@ -93,17 +93,117 @@ def stats(bucketname, bucket, endpoint, dbConn):
   sql_count_users = "select count(*) from users";
   sql_count_assets = "select count(*) from assets";
 
-  row = datatier.retrieve_one_row(dbConn, sql_count_users)
-  row2 = datatier.retrieve_one_row(dbConn, sql_count_assets)
-  if row is None or row2 is None:
+  row_users = datatier.retrieve_one_row(dbConn, sql_count_users)
+  row_assets = datatier.retrieve_one_row(dbConn, sql_count_assets)
+  if row_users is None or row_assets is None:
     print("Database operation failed...")
-  elif row == () or row2 == ():
+  elif row_users == () or row_assets == ():
     print("Unexpected query failure...")
   else:
-    print("# of users: {}".format(row[0]))
-    print("# of assets: {}".format(row2[0]))
+    print("# of users: {}".format(row_users[0]))
+    print("# of assets: {}".format(row_assets[0]))
+    
+#
+# 2 - users
+#
+def users(dbConn):
+  sql = "select * from users order by userid desc"
+  rows = datatier.retrieve_all_rows(dbConn, sql)
+  for entry in rows:
+    print("User id: {}".format(entry[0]))
+    print("\tEmail: {}".format(entry[1]))
+    print("\tName: {} , {}".format(entry[3], entry[2]))
+    print("\tFolder: {}".format(entry[4]))
 
+#
+# 3 - assets
+#
+def assets(dbConn):
+  sql = "select * from assets order by assetid desc"
+  rows = datatier.retrieve_all_rows(dbConn, sql)
+  for entry in rows:
+    print("Asset id: {}".format(entry[0]))
+    print("\tUser id: {}".format(entry[1]))
+    print("\tOriginal name: {}".format(entry[2]))
+    print("\tKey name: {}".format(entry[3]))
 
+#
+# 4 - download
+# download() returns the filename downloaded (for reusability).
+#
+def download(bucket, dbConn):
+  input_id = input("Enter asset id>\n")
+  bucketkey = "select bucketkey from assets where assetid = {}".format(input_id)
+  assetname = "select assetname from assets where assetid = {}".format(input_id)
+  bucketquery = datatier.retrieve_one_row(dbConn, bucketkey)
+  
+  # unsuccessful assetid query
+  if not bucketquery: 
+    print("No such asset...")
+    return
+  
+  # proceed with download
+  else: 
+    filename = datatier.retrieve_one_row(dbConn, assetname)[0]
+    print(bucketquery[0])
+    random_name = awsutil.download_file(bucket, bucketquery[0])
+    
+    # os.rename does not replace the file if it already exists.
+    os.replace(random_name, filename) 
+    print("Downloaded from S3 and saved as \' {} \'".format(filename))
+    return filename # for reusability
+    
+#
+# 5 - download and display 
+#
+def download_and_display(bucket, dbConn):
+  filename = download(bucket, dbConn)
+  if not filename:
+    return
+  
+  image = img.imread(filename)
+  plt.imshow(image)
+  plt.show()
+
+#
+# 6 - upload
+#
+def upload(bucket, dbConn):
+  # find file
+  local_filename = input("Enter local filename>\n")
+  if local_filename not in os.listdir():
+    print("Local file \' {} \' does not exist...".format(local_filename))
+    return
+  
+  # find user bucket, and new asset id
+  user_id = input("Enter user id>\n")
+  user_bucket_sql = "select bucketfolder from users where userid = {}".format(user_id)
+  max_asset_id_sql = "select max(assetid) from assets"
+  user_bucket = datatier.retrieve_one_row(dbConn, user_bucket_sql)
+  max_asset_id = datatier.retrieve_one_row(dbConn, max_asset_id_sql)
+  if not user_bucket:
+    print("No such user...")
+    return
+  
+  # the upload path for file
+  dest = user_bucket[0] + "/" + str(uuid.uuid4()) + ".jpg" # bucket/key.jpg
+  awsutil.upload_file(local_filename, bucket, dest)
+  print("Uploaded and stored in S3 as ' {} '".format(dest))
+  
+  # upload to RDS
+  upload_sql = """insert into assets
+  (userid, assetname, bucketkey) 
+  values (\'{}\', \'{}\', \'{}\')
+  """.format(user_id, local_filename, dest) 
+  datatier.perform_action(dbConn, upload_sql)
+  print("Recorded in RDS under asset id {}".format(str(max_asset_id[0])+1))
+
+#
+# 7 - add_user
+#
+def add_user(dbConn):
+  pass
+  
 #########################################################################
 # main
 #
@@ -117,7 +217,7 @@ sys.tracebacklimit = 0
 # what config file should we use for this session?
 #
 config_file = 'photoapp-config'
-# config_file = 'part02-files/photoapp-config'
+#  config_file = 'part02-files/photoapp-config'
 
 # 
 print("What config file to use for this session?")
@@ -170,23 +270,28 @@ if dbConn is None:
 
 #
 # main processing loop:
-
 #
 cmd = prompt()
 
 while cmd != 0:
-  #
-  if cmd == 1:
-    stats(bucketname, bucket, endpoint, dbConn)
-  #
-  #
-  # TODO
-  #
-  
-  #
-  else:
-    print("** Unknown command, try again...")
-  #
+  match cmd:
+    case 1:
+      stats(bucketname, bucket, endpoint, dbConn)
+    case 2:
+      users(dbConn)
+    case 3:
+      assets(dbConn)
+    case 4:
+      download(bucket, dbConn)
+    case 5:
+      download_and_display(bucket, dbConn)
+    case 6:
+      upload(bucket, dbConn)
+    case 7:
+      add_user(dbConn)
+    case default:
+      print("** Unknown command, try again...")
+      
   cmd = prompt()
 
 #

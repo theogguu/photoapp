@@ -16,11 +16,11 @@ INSERT INTO
   VALUES
   (80001,
     'kermit-headset.jpg',
-    '	6b0be043-1265-4c80-9719-fd8dbcda8fd4/e5ec9b22-82f9-4ab0-8cde-212a0df8e886.jpg'
+    'aa278699-eea2-4428-9c21-ad83908e523d/e5ec9b22-82f9-4ab0-8cde-212a0df8e886.jpg'
     ),
   (80001,
     'mc-skin.jpg',
-    '6b0be043-1265-4c80-9719-fd8dbcda8fd4/19bb64f7-f82e-492e-ac91-506bba1565fe.jpg'
+    'aa278699-eea2-4428-9c21-ad83908e523d/19bb64f7-f82e-492e-ac91-506bba1565fe.jpg'
     ),
   (80002,
     'cute-anime-girl.jpg',
