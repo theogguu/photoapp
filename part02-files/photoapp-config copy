@@ -1,0 +1,20 @@
+[s3]
+bucket_name = photoapp-steven-gu
+
+[rds]
+endpoint = mysql-cs310.cs4bnd9lvwts.us-east-1.rds.amazonaws.com
+port_number = 3306
+region_name = us-east-2
+user_name = photoapp-read-only
+user_pwd = abc123!!
+db_name = photoapp
+
+[s3-read-only]
+region_name = us-east-2
+aws_access_key_id = TAKIASQTIBU2OGT2BEGFC
+aws_secret_access_key = LQFF/t97SmgLb7pbms5/xIVp098zCFLT3JcOVcpA
+
+[s3-read-write]
+region_name = us-east-2
+aws_access_key_id = TAKIASQTIBU2OGT2BEGFC
+aws_secret_access_key = LQFF/t97SmgLb7pbms5/xIVp098zCFLT3JcOVcpA
