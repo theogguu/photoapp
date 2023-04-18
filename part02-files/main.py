@@ -53,7 +53,10 @@ def prompt():
   print("   6 => upload")
   print("   7 => add user")
 
-  cmd = int(input())
+  try:
+    cmd = int(input())
+  except:
+    cmd = 10000 # invalid command
   return cmd
 
 
@@ -135,12 +138,16 @@ def download(bucket, dbConn):
   input_id = input("Enter asset id>\n")
   bucketkey = "select bucketkey from assets where assetid = {}".format(input_id)
   assetname = "select assetname from assets where assetid = {}".format(input_id)
-  bucketquery = datatier.retrieve_one_row(dbConn, bucketkey)
   
+  try:
+    bucketquery = datatier.retrieve_one_row(dbConn, bucketkey)
+    
   # unsuccessful assetid query
-  if not bucketquery: 
-    print("No such asset...")
-    return
+    if not bucketquery: 
+      raise Exception
+  except:
+      print("No such asset...")
+      return
   
   # proceed with download
   else: 
@@ -171,7 +178,7 @@ def download_and_display(bucket, dbConn):
 def upload(bucket, dbConn):
   # find file
   local_filename = input("Enter local filename>\n")
-  if local_filename not in os.listdir():
+  if not os.path.exists(local_filename):
     print("Local file \' {} \' does not exist...".format(local_filename))
     return
   
@@ -194,16 +201,26 @@ def upload(bucket, dbConn):
   upload_sql = """insert into assets
   (userid, assetname, bucketkey) 
   values (\'{}\', \'{}\', \'{}\')
-  """.format(user_id, local_filename, dest) 
+  """.format(str(user_id), local_filename, dest) 
   datatier.perform_action(dbConn, upload_sql)
-  print("Recorded in RDS under asset id {}".format(str(max_asset_id[0])+1))
+  print("Recorded in RDS under asset id {}".format(int(max_asset_id[0])+1))
 
 #
 # 7 - add_user
 #
 def add_user(dbConn):
-  pass
+  email = input("Enter user's email>\n")
+  last_name = input("Enter user's last name>\n")
+  first_name = input("Enter user's first name>\n")
   
+  new_user_id_sql = "select max(userid) from users"
+  insert_sql = """insert into users (email, lastname, firstname, bucketfolder)
+  values ( \'{}\', \'{}\', \'{}\', \'{}\')
+  """.format(email, last_name, first_name, str(uuid.uuid4()))
+  
+  max_id = datatier.retrieve_one_row(dbConn, new_user_id_sql)[0]
+  datatier.perform_action(dbConn, insert_sql)
+  print("Recorded in RDS under user id {}".format(str(max_id+1)))
 #########################################################################
 # main
 #
@@ -217,8 +234,6 @@ sys.tracebacklimit = 0
 # what config file should we use for this session?
 #
 config_file = 'photoapp-config'
-#  config_file = 'part02-files/photoapp-config'
-
 # 
 print("What config file to use for this session?")
 print("Press ENTER to use default (photoapp-config),")
