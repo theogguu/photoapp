@@ -140,8 +140,7 @@ def download(bucket, dbConn):
   assetname = "select assetname from assets where assetid = {}".format(input_id)
   
   bucketquery = datatier.retrieve_one_row(dbConn, bucketkey)
-  #try perform action instead.
-  
+    
 # unsuccessful assetid query
   if not bucketquery: 
     print("No such asset...")
@@ -180,17 +179,19 @@ def upload(bucket, dbConn):
     print("Local file \' {} \' does not exist...".format(local_filename))
     return
   
-  # find user bucket, and new asset id
+  # find user bucket
   user_id = input("Enter user id>\n")
   user_bucket_sql = "select bucketfolder from users where userid = {}".format(user_id)
-  max_asset_id_sql = "select max(assetid) from assets"
   user_bucket = datatier.retrieve_one_row(dbConn, user_bucket_sql)
-  max_asset_id = datatier.retrieve_one_row(dbConn, max_asset_id_sql)
   if not user_bucket:
     print("No such user...")
     return
   
-  # the upload path for file
+  # find max asset id
+  max_asset_id_sql = "select max(assetid) from assets"
+  max_asset_id = datatier.retrieve_one_row(dbConn, max_asset_id_sql)
+  
+  # generate upload path for file
   dest = user_bucket[0] + "/" + str(uuid.uuid4()) + ".jpg" # bucket/key.jpg
   awsutil.upload_file(local_filename, bucket, dest)
   print("Uploaded and stored in S3 as ' {} '".format(dest))
@@ -216,9 +217,14 @@ def add_user(dbConn):
   values ( \'{}\', \'{}\', \'{}\', \'{}\')
   """.format(email, last_name, first_name, str(uuid.uuid4()))
   
-  max_id = datatier.retrieve_one_row(dbConn, new_user_id_sql)[0]
-  datatier.perform_action(dbConn, insert_sql)
+  try: # may be an empty database
+    max_id = datatier.retrieve_one_row(dbConn, new_user_id_sql)[0]
+    datatier.perform_action(dbConn, insert_sql)
+  except:
+    max_id = 0
   print("Recorded in RDS under user id {}".format(str(max_id+1)))
+  
+
 #########################################################################
 # main
 #
@@ -287,24 +293,22 @@ if dbConn is None:
 cmd = prompt()
 
 while cmd != 0:
-  match cmd:
-    case 1:
-      stats(bucketname, bucket, endpoint, dbConn)
-    case 2:
-      users(dbConn)
-    case 3:
-      assets(dbConn)
-    case 4:
-      download(bucket, dbConn)
-    case 5:
-      download_and_display(bucket, dbConn)
-    case 6:
-      upload(bucket, dbConn)
-    case 7:
-      add_user(dbConn)
-    case default:
-      print("** Unknown command, try again...")
-      
+  if cmd == 1:
+    stats(bucketname, bucket, endpoint, dbConn)
+  elif cmd == 2:
+    users(dbConn)
+  elif cmd == 3:
+    assets(dbConn)
+  elif cmd == 4:
+    download(bucket, dbConn)
+  elif cmd == 5:
+    download_and_display(bucket, dbConn)
+  elif cmd == 6:
+    upload(bucket, dbConn)
+  elif cmd == 7:
+    add_user(dbConn)
+  else:
+    print("** Unknown command, try again...")
   cmd = prompt()
 
 #

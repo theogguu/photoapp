@@ -88,10 +88,10 @@ def retrieve_one_row(dbConn, sql, parameters=[]):
       return ()
     else:
       return row
-
-  except Exception as e:
-    logging.error("datatier.retrieve_one_row() failed:")
-    logging.error(e)
+  except:
+  # except Exception as e:
+    # logging.error("datatier.retrieve_one_row() failed:")
+    # logging.error(e)
     return None
 
   finally:
