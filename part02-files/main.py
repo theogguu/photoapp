@@ -139,15 +139,13 @@ def download(bucket, dbConn):
   bucketkey = "select bucketkey from assets where assetid = {}".format(input_id)
   assetname = "select assetname from assets where assetid = {}".format(input_id)
   
-  try:
-    bucketquery = datatier.retrieve_one_row(dbConn, bucketkey)
-    
-  # unsuccessful assetid query
-    if not bucketquery: 
-      raise Exception
-  except:
-      print("No such asset...")
-      return
+  bucketquery = datatier.retrieve_one_row(dbConn, bucketkey)
+  #try perform action instead.
+  
+# unsuccessful assetid query
+  if not bucketquery: 
+    print("No such asset...")
+    return
   
   # proceed with download
   else: 
