@@ -115,7 +115,7 @@ def users(dbConn):
   for entry in rows:
     print("User id: {}".format(entry[0]))
     print("\tEmail: {}".format(entry[1]))
-    print("\tName: {} , {}".format(entry[3], entry[2]))
+    print("\tName: {} , {}".format(entry[2], entry[3]))
     print("\tFolder: {}".format(entry[4]))
 
 #
@@ -149,7 +149,6 @@ def download(bucket, dbConn):
   # proceed with download
   else: 
     filename = datatier.retrieve_one_row(dbConn, assetname)[0]
-    print(bucketquery[0])
     random_name = awsutil.download_file(bucket, bucketquery[0])
     
     # os.rename does not replace the file if it already exists.
