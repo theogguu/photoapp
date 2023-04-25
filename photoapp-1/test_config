@@ -11,10 +11,10 @@ db_name = photoapp
 
 [s3-read-only]
 region_name = us-east-2
-aws_access_key_id = AKIAWPEBNUOS2E62YPSF
-aws_secret_access_key = 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
+aws_access_key_id = INPUT-HERE
+aws_secret_access_key = INPUT-HERE
 
 [s3-read-write]
 region_name = us-east-2
-aws_access_key_id = AKIAWPEBNUOS2E62YPSF
-aws_secret_access_key = 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
+aws_access_key_id = INPUT-HERE
+aws_secret_access_key = INPUT-HERE
